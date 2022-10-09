@@ -1,5 +1,5 @@
 //jshint esversion:6
-
+require("dotenv").config(); //Always put dotEnv at the very top
 const ejs = require("ejs");
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -7,6 +7,9 @@ const mongoose = require("mongoose");
 const encrypt = require("mongoose-encryption"); // the mongoose encryption module
 
 const app = express();
+
+console.log(process.env); // remove this after you've confirmed it is working
+console.log(process.env.API_KEY); // by process.env.{key}, we can tap to the variable in .env file
 
 app.use(express.static("public"));
 
@@ -27,10 +30,10 @@ const userSchema = new mongoose.Schema ({
 });
 
 // our encryption key
-const secret = "Thisisourlittlesecret.";
+// const secret = "Thisisourlittlesecret.";
 
 // our schema that is utilizing encryption, and encrypting ONLY password item in db.
-userSchema.plugin(encrypt, {secret: secret, encryptedFields: ['password']});
+userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ['password']});
 
 // Model
 const User = new mongoose.model("User", userSchema);
