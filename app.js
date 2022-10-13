@@ -31,7 +31,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/userDB', {
 app.set('view engine', 'ejs');
 
 // DB Schema // Added new mongoose.Schema () to include encryption
-const userSchema = new mongoose.Schema ({
+const userSchema = new mongoose.Schema({
   email: String,
   password: String
 });
@@ -59,45 +59,51 @@ app.get("/register", function(req, res) {
 
 // ------------------------------------------
 app.post("/register", (req, res) => {
-  const newUser = new User({
-    email: req.body.username,
-    password: md5(req.body.password)
+  bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+    // Store hash in your password DB.
+    const newUser = new User({
+      email: req.body.username,
+      password: hash
+    });
+
+    newUser.save((err) => {
+      if (!err) {
+        console.log("User saved");
+        console.log(hash);
+        res.render("secrets");
+      } else {
+        res.render(err);
+        console.log(err);
+      }
+    });
+
   });
 
-  newUser.save( (err) => {
-    if (!err) {
-      console.log("User saved");
-      res.render("secrets");
-    } else {
-      res.render(err);
-      console.log(err);
-    }
-  });
 });
 // ------------------------------------------
 
 app.post("/login", (req, res) => {
-const username = req.body.username ;
-const password = req.body.password;
+  const username = req.body.username;
+  const password = req.body.password;
 
-User.findOne({ email: username }, (err, foundUser) => {
-  if (err) {
-    console.log(err);
-  } else {
-    if (foundUser) {
-      if (foundUser.password === password) {
-        console.log("Logging you in!");
-        res.render("secrets");
-      } else {
-        console.log("Not registered! Try again!");
-        res.render("login");
+  User.findOne({ email: username}, (err, foundUser) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (foundUser) {
+        bcrypt.compare(password, foundUser.password, function(err, result) {
+          if (result === true) {
+            console.log("Logging you in!");
+            res.render("secrets");
+          } else {
+            console.log("Wrong Password!");
+          }
+        });
       }
     }
-  }
-});
+  });
 });
 
-console.log(md5("123456"));
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
