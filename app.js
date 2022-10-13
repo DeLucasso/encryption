@@ -4,7 +4,14 @@ const ejs = require("ejs");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const encrypt = require("mongoose-encryption"); // the mongoose encryption module
+
+//bcrypt
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+
+
+// const encrypt = require("mongoose-encryption"); // the mongoose encryption module
+const md5 = require("md5");
 
 const app = express();
 
@@ -33,7 +40,7 @@ const userSchema = new mongoose.Schema ({
 // const secret = "Thisisourlittlesecret.";
 
 // our schema that is utilizing encryption, and encrypting ONLY password item in db.
-userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ['password']});
+// userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ['password']});
 
 // Model
 const User = new mongoose.model("User", userSchema);
@@ -54,7 +61,7 @@ app.get("/register", function(req, res) {
 app.post("/register", (req, res) => {
   const newUser = new User({
     email: req.body.username,
-    password: req.body.password
+    password: md5(req.body.password)
   });
 
   newUser.save( (err) => {
@@ -90,7 +97,7 @@ User.findOne({ email: username }, (err, foundUser) => {
 });
 });
 
-
+console.log(md5("123456"));
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
